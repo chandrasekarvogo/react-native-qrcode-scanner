@@ -247,7 +247,7 @@ export default class QRCodeScanner extends Component {
               type={this.props.cameraType}
               flashMode={
                 this.state.isCameraReady
-                  ? Camera.Constants.FlashMode.torch
+                  ? this.props.flashMode
                   : Camera.Constants.FlashMode.off
               }
               captureAudio={false}
@@ -265,7 +265,7 @@ export default class QRCodeScanner extends Component {
           style={[styles.camera, this.props.cameraStyle]}
           flashMode={
             this.state.isCameraReady
-              ? Camera.Constants.FlashMode.torch
+              ? this.props.flashMode
               : Camera.Constants.FlashMode.off
           }
           onBarCodeRead={this._handleBarCodeRead.bind(this)}
