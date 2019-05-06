@@ -1,7 +1,7 @@
-'use strict';
+"use strict";
 
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+import React, { Component } from "react";
+import PropTypes from "prop-types";
 
 import {
   StyleSheet,
@@ -12,14 +12,14 @@ import {
   View,
   Text,
   Platform,
-  PermissionsAndroid,
-} from 'react-native';
+  PermissionsAndroid
+} from "react-native";
 
-import Permissions from 'react-native-permissions';
-import { RNCamera as Camera } from 'react-native-camera';
+import Permissions from "react-native-permissions";
+import { RNCamera as Camera } from "react-native-camera";
 
-const PERMISSION_AUTHORIZED = 'authorized';
-const CAMERA_PERMISSION = 'camera';
+const PERMISSION_AUTHORIZED = "authorized";
+const CAMERA_PERMISSION = "camera";
 
 export default class QRCodeScanner extends Component {
   static propTypes = {
@@ -29,7 +29,7 @@ export default class QRCodeScanner extends Component {
     reactivateTimeout: PropTypes.number,
     fadeIn: PropTypes.bool,
     showMarker: PropTypes.bool,
-    cameraType: PropTypes.oneOf(['front', 'back']),
+    cameraType: PropTypes.oneOf(["front", "back"]),
     customMarker: PropTypes.element,
     containerStyle: PropTypes.any,
     cameraStyle: PropTypes.any,
@@ -42,29 +42,29 @@ export default class QRCodeScanner extends Component {
     permissionDialogTitle: PropTypes.string,
     permissionDialogMessage: PropTypes.string,
     checkAndroid6Permissions: PropTypes.bool,
-    cameraProps: PropTypes.object,
+    cameraProps: PropTypes.object
   };
 
   static defaultProps = {
-    onRead: () => console.log('QR code scanned!'),
+    onRead: () => console.log("QR code scanned!"),
     reactivate: false,
     vibrate: true,
     reactivateTimeout: 0,
     fadeIn: true,
     showMarker: false,
-    cameraType: 'back',
+    cameraType: "back",
     notAuthorizedView: (
       <View
         style={{
           flex: 1,
-          alignItems: 'center',
-          justifyContent: 'center',
+          alignItems: "center",
+          justifyContent: "center"
         }}
       >
         <Text
           style={{
-            textAlign: 'center',
-            fontSize: 16,
+            textAlign: "center",
+            fontSize: 16
           }}
         >
           Camera not authorized
@@ -75,24 +75,24 @@ export default class QRCodeScanner extends Component {
       <View
         style={{
           flex: 1,
-          alignItems: 'center',
-          justifyContent: 'center',
+          alignItems: "center",
+          justifyContent: "center"
         }}
       >
         <Text
           style={{
-            textAlign: 'center',
-            fontSize: 16,
+            textAlign: "center",
+            fontSize: 16
           }}
         >
           ...
         </Text>
       </View>
     ),
-    permissionDialogTitle: 'Info',
-    permissionDialogMessage: 'Need camera permission',
+    permissionDialogTitle: "Info",
+    permissionDialogMessage: "Need camera permission",
     checkAndroid6Permissions: false,
-    cameraProps: {},
+    cameraProps: {}
   };
 
   constructor(props) {
@@ -103,27 +103,29 @@ export default class QRCodeScanner extends Component {
       isAuthorized: false,
       isAuthorizationChecked: false,
       disableVibrationByUser: false,
+      isCameraReady: false
     };
 
-    this._scannerTimeout    = null;
+    this._scannerTimeout = null;
     this._handleBarCodeRead = this._handleBarCodeRead.bind(this);
+    this.handleCameraReady = this.handleCameraReady.bind(this);
   }
 
   componentDidMount() {
-    if (Platform.OS === 'ios') {
+    if (Platform.OS === "ios") {
       Permissions.request(CAMERA_PERMISSION).then(response => {
         this.setState({
           isAuthorized: response === PERMISSION_AUTHORIZED,
-          isAuthorizationChecked: true,
+          isAuthorizationChecked: true
         });
       });
     } else if (
-      Platform.OS === 'android' &&
+      Platform.OS === "android" &&
       this.props.checkAndroid6Permissions
     ) {
       PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA, {
         title: this.props.permissionDialogTitle,
-        message: this.props.permissionDialogMessage,
+        message: this.props.permissionDialogMessage
       }).then(granted => {
         const isAuthorized =
           Platform.Version >= 23
@@ -135,25 +137,23 @@ export default class QRCodeScanner extends Component {
     } else {
       this.setState({ isAuthorized: true, isAuthorizationChecked: true });
     }
-    
+
     if (this.props.fadeIn) {
       Animated.sequence([
         Animated.delay(1000),
         Animated.timing(this.state.fadeInOpacity, {
           toValue: 1,
-          easing: Easing.inOut(Easing.quad),
-        }),
+          easing: Easing.inOut(Easing.quad)
+        })
       ]).start();
     }
   }
 
   componentWillUnmount() {
-
-    if(this._scannerTimeout !== null) {
+    if (this._scannerTimeout !== null) {
       clearTimeout(this._scannerTimeout);
     }
     this._scannerTimeout = null;
-
   }
 
   disable() {
@@ -204,7 +204,12 @@ export default class QRCodeScanner extends Component {
       } else {
         return (
           <View style={styles.rectangleContainer}>
-            <View style={[styles.rectangle, this.props.markerStyle ? this.props.markerStyle : null]} />
+            <View
+              style={[
+                styles.rectangle,
+                this.props.markerStyle ? this.props.markerStyle : null
+              ]}
+            />
           </View>
         );
       }
@@ -212,28 +217,42 @@ export default class QRCodeScanner extends Component {
     return null;
   }
 
+  handleCameraReady() {
+    this.setState({
+      isCameraReady: true
+    });
+  }
+
   _renderCamera() {
+    console.log("FlashMode", this.props.flashMode, this.props.cameraProps);
     const {
       notAuthorizedView,
       pendingAuthorizationView,
-      cameraType,
+      cameraType
     } = this.props;
     const { isAuthorized, isAuthorizationChecked } = this.state;
     if (isAuthorized) {
       if (this.props.fadeIn) {
+        console.log("inside fade in");
         return (
           <Animated.View
             style={{
               opacity: this.state.fadeInOpacity,
-              backgroundColor: 'transparent',
+              backgroundColor: "transparent"
             }}
           >
             <Camera
               style={[styles.camera, this.props.cameraStyle]}
               onBarCodeRead={this._handleBarCodeRead.bind(this)}
               type={this.props.cameraType}
+              flashMode={
+                this.state.isCameraReady
+                  ? Camera.Constants.FlashMode.torch
+                  : Camera.Constants.FlashMode.off
+              }
               captureAudio={false}
               {...this.props.cameraProps}
+              onCameraReady={this.handleCameraReady}
             >
               {this._renderCameraMarker()}
             </Camera>
@@ -244,9 +263,15 @@ export default class QRCodeScanner extends Component {
         <Camera
           type={cameraType}
           style={[styles.camera, this.props.cameraStyle]}
+          flashMode={
+            this.state.isCameraReady
+              ? Camera.Constants.FlashMode.torch
+              : Camera.Constants.FlashMode.off
+          }
           onBarCodeRead={this._handleBarCodeRead.bind(this)}
           captureAudio={false}
           {...this.props.cameraProps}
+          onCameraReady={this.handleCameraReady}
         >
           {this._renderCameraMarker()}
         </Camera>
@@ -279,36 +304,36 @@ export default class QRCodeScanner extends Component {
 
 const styles = StyleSheet.create({
   mainContainer: {
-    flex: 1,
+    flex: 1
   },
   infoView: {
     flex: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: Dimensions.get('window').width,
+    justifyContent: "center",
+    alignItems: "center",
+    width: Dimensions.get("window").width
   },
 
   camera: {
     flex: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
-    height: Dimensions.get('window').width,
-    width: Dimensions.get('window').width,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+    height: Dimensions.get("window").width,
+    width: Dimensions.get("window").width
   },
 
   rectangleContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent"
   },
 
   rectangle: {
     height: 250,
     width: 250,
     borderWidth: 2,
-    borderColor: '#00FF00',
-    backgroundColor: 'transparent',
-  },
+    borderColor: "#00FF00",
+    backgroundColor: "transparent"
+  }
 });
