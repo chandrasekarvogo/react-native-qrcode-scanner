@@ -224,7 +224,6 @@ export default class QRCodeScanner extends Component {
   }
 
   _renderCamera() {
-    console.log("FlashMode", this.props.flashMode, this.props.cameraProps);
     const {
       notAuthorizedView,
       pendingAuthorizationView,
@@ -233,7 +232,6 @@ export default class QRCodeScanner extends Component {
     const { isAuthorized, isAuthorizationChecked } = this.state;
     if (isAuthorized) {
       if (this.props.fadeIn) {
-        console.log("inside fade in");
         return (
           <Animated.View
             style={{
